@@ -1,5 +1,6 @@
 /**
  * Lightweight checks for `getLocationPublicStatus` (America/Chicago, sheet `Open` ignored).
+ * Uses default weekly hours from `hours.ts` (Taqueria-style carryout windows).
  * Run: npx tsx scripts/validate-location-hours.ts
  */
 import { getLocationPublicStatus } from "../lib/locations/hours";
@@ -35,30 +36,42 @@ function assert(cond: boolean, msg: string) {
 // Tuesday 2:28 AM CDT (2025-04-29 07:28 UTC)
 const tueEarly = new Date("2025-04-29T07:28:00.000Z");
 let s = getLocationPublicStatus(base, tueEarly);
-assert(s.label === "Closed" && s.detail.includes("5:00 PM"), `Tue 2:28 AM: got ${JSON.stringify(s)}`);
+assert(
+  s.label === "Closed" &&
+    s.detail.includes("Carryout and delivery") &&
+    s.detail.includes("11:00 AM"),
+  `Tue 2:28 AM: got ${JSON.stringify(s)}`,
+);
 
-// Saturday 10:30 AM CDT (2025-05-03 15:30 UTC ≈ 10:30 CDT)
+// Saturday 10:30 AM CDT (2025-05-03 15:30 UTC ≈ 10:30 CDT) — before 11:00 open
 const satMorning = new Date("2025-05-03T15:30:00.000Z");
 s = getLocationPublicStatus(base, satMorning);
 assert(
-  s.label === "Open" && s.detail.includes("Desayuno de Fin de Semana"),
+  s.label === "Closed" &&
+    s.detail.includes("Carryout and delivery") &&
+    s.detail.includes("11:00 AM"),
   `Sat 10:30 AM: got ${JSON.stringify(s)}`,
 );
 
-// Saturday 4:30 PM CDT (2025-05-03 21:30 UTC)
-const satGap = new Date("2025-05-03T21:30:00.000Z");
-s = getLocationPublicStatus(base, satGap);
+// Tuesday 10:00 PM CDT (after 9:30 PM close) — 2025-04-30 03:00 UTC = Tue 10pm CDT
+const tueLate = new Date("2025-04-30T03:00:00.000Z");
+s = getLocationPublicStatus(base, tueLate);
 assert(
-  s.label === "Closed" && s.detail.includes("Regular Menu") && s.detail.includes("today"),
-  `Sat 4:30 PM gap: got ${JSON.stringify(s)}`,
+  s.label === "Closed" &&
+    s.detail.includes("Carryout and delivery") &&
+    s.detail.includes("tomorrow") &&
+    s.detail.includes("11:00 AM"),
+  `Tue 10:00 PM after hours: got ${JSON.stringify(s)}`,
 );
 
-// Saturday 7:00 PM CDT (2025-05-04T00:00:00.000Z) — 7pm CDT = midnight UTC next calendar day in Chicago; use explicit offset-safe instant:
-// 2025-05-03 19:00 Chicago = 2025-05-04 00:00 UTC
+// Saturday 7:00 PM CDT — 2025-05-04 00:00 UTC = Sat 7pm CDT
 const satEvening = new Date("2025-05-04T00:00:00.000Z");
 s = getLocationPublicStatus(base, satEvening);
 assert(
-  s.label === "Open" && s.detail.includes("Regular Menu") && s.detail.includes("11:00 PM"),
+  s.label === "Open" &&
+    s.detail.includes("Carryout and delivery") &&
+    s.detail.includes("until") &&
+    s.detail.includes("9:30"),
   `Sat 7:00 PM: got ${JSON.stringify(s)}`,
 );
 

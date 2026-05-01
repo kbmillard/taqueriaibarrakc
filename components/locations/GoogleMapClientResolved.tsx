@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from "react";
 import type { LocationItem } from "@/lib/locations/schema";
-import {
-  addressOnlyMapsEmbedIframeUrl,
-  formatAddressLine,
-  placeIdOnlyMapsEmbedIframeUrl,
-} from "@/lib/locations/helpers";
+import { cn } from "@/lib/utils/cn";
+import { formatAddressLine, resolvedMapsUrl } from "@/lib/locations/helpers";
 import { loadGoogleMapsScript } from "@/lib/maps/load-google-maps-script";
 import { GoogleMapGreedy } from "@/components/locations/GoogleMapGreedy";
+import { MapButton } from "@/components/locations/MapButton";
 
 type Props = {
   loc: LocationItem;
@@ -18,29 +16,22 @@ type Props = {
 
 /**
  * When the API has no lat/lng yet, resolve placeId or address in the browser with the
- * Maps JavaScript Geocoder (HTTP-referrer key). On failure, falls back to a classic
- * address-only Google Maps iframe (no API key).
+ * Maps JavaScript Geocoder (HTTP-referrer key). On failure, shows an Open in Maps link
+ * instead of a Maps iframe (iframes use cooperative ⌘+scroll zoom).
  */
-function classicMapsEmbedFallback(loc: LocationItem, placeId: string | undefined): string | null {
-  return (
-    addressOnlyMapsEmbedIframeUrl(loc) ??
-    (placeId ? placeIdOnlyMapsEmbedIframeUrl(placeId) : null)
-  );
-}
-
 export function GoogleMapClientResolved({ loc, title, className }: Props) {
   const line = formatAddressLine(loc);
   const placeId = loc.placeId?.trim();
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [iframeFallback, setIframeFallback] = useState<string | null>(null);
+  const [showMapsLinkFallback, setShowMapsLinkFallback] = useState(false);
 
   useEffect(() => {
     setCoords(null);
-    setIframeFallback(null);
+    setShowMapsLinkFallback(false);
 
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim();
     if (!apiKey) {
-      setIframeFallback(classicMapsEmbedFallback(loc, placeId));
+      setShowMapsLinkFallback(true);
       return;
     }
     if (!placeId && !line.trim()) {
@@ -53,7 +44,7 @@ export function GoogleMapClientResolved({ loc, title, className }: Props) {
       try {
         await loadGoogleMapsScript(apiKey);
       } catch {
-        if (!cancelled) setIframeFallback(classicMapsEmbedFallback(loc, placeId));
+        if (!cancelled) setShowMapsLinkFallback(true);
         return;
       }
       if (cancelled) return;
@@ -68,7 +59,7 @@ export function GoogleMapClientResolved({ loc, title, className }: Props) {
         const first = results?.[0];
         const point = first?.geometry?.location;
         if (status !== "OK" || !point) {
-          setIframeFallback(classicMapsEmbedFallback(loc, placeId));
+          setShowMapsLinkFallback(true);
           return;
         }
         setCoords({ lat: point.lat(), lng: point.lng() });
@@ -91,15 +82,17 @@ export function GoogleMapClientResolved({ loc, title, className }: Props) {
     );
   }
 
-  if (iframeFallback) {
+  if (showMapsLinkFallback) {
     return (
-      <iframe
-        title={`Map — ${loc.name}`}
-        className={className ?? "h-[220px] w-full bg-charcoal"}
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-        src={iframeFallback}
-      />
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center gap-3 bg-charcoal/60 p-6 text-center text-sm text-cream/80",
+          className ?? "h-[220px] w-full min-h-[220px]",
+        )}
+      >
+        <p>Map could not be loaded here. Open in Google Maps for directions and street view.</p>
+        <MapButton label="Open in Google Maps" href={resolvedMapsUrl(loc)} />
+      </div>
     );
   }
 

@@ -14,12 +14,12 @@ export const DEFAULT_TIMEZONE = "America/Chicago";
 
 /** Default carryout windows when a location has no `weeklyHoursJson` override. */
 export const DEFAULT_WEEKLY_HOURS: WeeklyHours = {
-  mon: [{ open: "11:00", close: "21:00", label: "Carryout" }],
-  tue: [{ open: "11:00", close: "21:30", label: "Carryout" }],
-  wed: [{ open: "11:00", close: "21:30", label: "Carryout" }],
-  thu: [{ open: "11:00", close: "21:30", label: "Carryout" }],
-  fri: [{ open: "11:00", close: "21:30", label: "Carryout" }],
-  sat: [{ open: "11:00", close: "21:30", label: "Carryout" }],
+  mon: [{ open: "11:00", close: "21:00", label: "Carryout and delivery" }],
+  tue: [{ open: "11:00", close: "21:30", label: "Carryout and delivery" }],
+  wed: [{ open: "11:00", close: "21:30", label: "Carryout and delivery" }],
+  thu: [{ open: "11:00", close: "21:30", label: "Carryout and delivery" }],
+  fri: [{ open: "11:00", close: "21:30", label: "Carryout and delivery" }],
+  sat: [{ open: "11:00", close: "21:30", label: "Carryout and delivery" }],
 };
 
 const DAY_KEYS: DayKey[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
