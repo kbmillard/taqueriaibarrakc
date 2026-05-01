@@ -75,7 +75,7 @@ export function StorySection() {
             subtitle="Taqueria Ibarra Food Truck keeps the line moving with honest portions, salsas that bite back, and tortillas treated like they matter — built for carryout, delivery, and the block-party energy Kansas City loves."
           />
           <p className="mt-6 text-sm leading-relaxed text-cream/80">
-            From tacos and quesabirria-style plates to burros and tortas, the throughline is the
+            From tacos and quesabirria-style plates to burritos and tortas, the throughline is the
             same: practical food truck service with a premium feel — so your order feels as serious
             as the flavors.
           </p>

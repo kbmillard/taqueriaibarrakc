@@ -42,7 +42,7 @@ export function Hero() {
           </h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-cream/80 sm:text-lg">
             Order carryout or delivery from Taqueria Ibarra Food Truck in Kansas City — tacos,
-            birria, tortas, burros, quesadillas, and more made fresh on North Brighton.
+            birria, tortas, burritos, quesadillas, and more made fresh on North Brighton.
           </p>
         </motion.div>
 

@@ -9,7 +9,8 @@
     "lint": "next lint",
     "validate:sheets": "node scripts/run-sheet-validation.mjs",
     "validate:location-hours": "tsx scripts/validate-location-hours.ts",
-    "icons": "node scripts/generate-brand-icons.mjs"
+    "icons": "node scripts/generate-brand-icons.mjs",
+    "menu:build": "node scripts/build-menu-from-menufy-snapshot.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

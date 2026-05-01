@@ -14,7 +14,7 @@ import { MENU_CATEGORY_ORDER, meatChoices } from "../lib/menu/schema";
 import { itemRequiresOptionSelections } from "../lib/menu/option-groups";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const DEFAULT_MENU = path.join(ROOT, "tmp", "menu-sheet-test.csv");
+const DEFAULT_MENU = path.join(ROOT, "prompt", "google-sheet-menu-template.csv");
 const DEFAULT_LOC = path.join(ROOT, "tmp", "locations-sheet-test.csv");
 
 const MAIN_CATEGORY_LABELS = new Set(

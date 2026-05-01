@@ -130,7 +130,7 @@ export function InteractiveMenu() {
           <SectionHeading
             kicker="Menu"
             title="Auténtico Sazón Mexicano."
-            subtitle="Tacos, burros, quesadillas, tortas, sides, desserts, and drinks. Prices follow when confirmed; until then you will see Price TBD."
+            subtitle="Tacos, burritos, tortas, quesadillas, pizadilla, combos, platters, sides, postres, and bebidas — synced from the live Menufy menu snapshot. Prices follow the published sheet or local fallback."
           />
         </div>
 

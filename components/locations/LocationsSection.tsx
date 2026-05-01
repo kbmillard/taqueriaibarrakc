@@ -55,7 +55,7 @@ export function LocationsSection() {
           <SectionHeading
             kicker="Find us"
             title="North Brighton is the pin."
-            subtitle="Taqueria Ibarra Food Truck serves tacos, burros, tortas, quesadillas, and more from 5005 North Brighton — carryout and delivery windows are listed below."
+            subtitle="Taqueria Ibarra Food Truck serves tacos, burritos, tortas, quesadillas, and more from 5005 North Brighton — carryout and delivery windows are listed below."
           />
         </div>
 

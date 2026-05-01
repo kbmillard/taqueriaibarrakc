@@ -59,22 +59,27 @@ export type MenuCatalogResponse = {
 /** API alias — same shape as `MenuCatalogResponse`. */
 export type MenuResponse = MenuCatalogResponse;
 
+/** Order matches Menufy `categories/all` sort (location 32419 snapshot). */
 export const MENU_CATEGORY_ORDER = [
   "Tacos",
-  "Burros",
-  "Quesadillas",
+  "Burritos",
   "Tortas",
+  "Quesadillas",
+  "Pizadilla",
+  "Combos",
+  "Platters",
   "Sides",
-  "Desserts",
-  "Drinks",
+  "Postres (Desserts)",
+  "Bebidas (Drinks)",
 ] as const;
 
+/** Legacy meat modal list — prefer `optionGroups` on menu items; keep aligned with common Menufy proteins. */
 export const meatChoices = [
-  "Asada / Steak",
-  "Pastor / Marinated Pork",
-  "Tripa / Tripe",
-  "Birria / Stewed Beef",
-  "Pollo / Chicken",
+  "Asada (Steak)",
+  "Pastor (Marinated Pork)",
+  "Pollo (Chicken)",
+  "Chorizo",
+  "Birria (Stewed Beef)",
 ] as const;
 
 /** Price in dollars → cents for cart math; null stays null */

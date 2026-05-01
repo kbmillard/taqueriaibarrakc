@@ -6,7 +6,7 @@ export const RESTAURANT = {
   mapsQuery: "5005 North Brighton Avenue, Kansas City, MO 64117",
   role: "food truck home base",
   description:
-    "Taqueria Ibarra Food Truck serves tacos, burros, tortas, and quesadillas from North Brighton — carryout and delivery windows follow the posted schedule.",
+    "Taqueria Ibarra Food Truck serves tacos, burritos, tortas, and quesadillas from North Brighton — carryout and delivery windows follow the posted schedule.",
 } as const;
 
 export const TRUCK = {
