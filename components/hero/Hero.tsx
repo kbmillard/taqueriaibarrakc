@@ -13,14 +13,31 @@ export function Hero() {
       id="hero"
       className="relative flex min-h-[100svh] items-end overflow-hidden bg-charcoal pt-[var(--nav-h)]"
     >
-      <Image
-        src={HERO_BACKGROUND_IMAGE}
-        alt={HERO_BACKGROUND_ALT}
-        fill
-        priority
-        className="object-contain object-center lg:object-cover"
-        sizes="100vw"
-      />
+      {/* Large screens: full-bleed photo */}
+      <div className="pointer-events-none absolute inset-0 hidden lg:block">
+        <Image
+          src={HERO_BACKGROUND_IMAGE}
+          alt={HERO_BACKGROUND_ALT}
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+      </div>
+      {/* Mobile / tablet: crop band behind the main headline so the logo fills that vertical slice */}
+      <div
+        className="pointer-events-none absolute inset-x-0 z-0 top-[calc(var(--nav-h)+4.5rem)] h-[min(50svh,26.5rem)] max-lg:block sm:top-[calc(var(--nav-h)+5rem)] sm:h-[min(48svh,28rem)] lg:hidden"
+        aria-hidden
+      >
+        <Image
+          src={HERO_BACKGROUND_IMAGE}
+          alt=""
+          fill
+          priority
+          className="object-cover object-[50%_40%] sm:object-[50%_38%]"
+          sizes="100vw"
+        />
+      </div>
       <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/70 to-charcoal/20" />
 
       <div className="relative z-[1] mx-auto flex w-full max-w-[1400px] flex-col gap-10 px-5 pb-16 pt-24 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
