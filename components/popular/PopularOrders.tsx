@@ -29,7 +29,6 @@ export function PopularOrders() {
           kicker="Popular orders"
           title="Featured picks from the street."
           align="center"
-          subtitle="Twelve house favorites—tap a photo to view it larger."
         />
 
         {loading || !data ? (
