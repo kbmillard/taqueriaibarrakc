@@ -1,0 +1,446 @@
+Build Taqueria Ibarra KC as the same one-page interactive restaurant website system as La Hamburguesa Loca, but fully rebranded for Taqueria Ibarra.
+
+Use the La Hamburguesa Loca site as the product/interaction model, not just inspiration.
+
+Local repo:
+ /Users/kyle/Desktop/taqueriaibarrakc
+
+GitHub repo:
+ kbmillard/taqueriaibarrakc
+
+Logo/assets path:
+ /Users/kyle/Desktop/taqueriaibarrakc/taqueria_ibarra_web_logo_assets
+
+Important:
+That logo folder contains dev-ready Taqueria Ibarra logo assets in multiple sizes. Use those assets instead of generating placeholders.
+
+Use the logo assets for:
+- centered nav/header logo
+- favicon
+- apple-touch-icon
+- manifest icons
+- Open Graph / social preview image if a suitable asset exists
+- footer/brand mark if needed
+- any brand badge in the Prologue section
+
+Do not use La Hamburguesa logos or assets anywhere.
+Do not use placeholder “TI” if a real logo asset exists in the folder.
+Pick the cleanest transparent PNG/SVG/WebP assets when available.
+Preserve crisp logo rendering on retina screens.
+
+Reference/current site:
+ https://www.taqueriaibarrakc.com/
+ https://www.taqueriaibarrakc.com/order#categoryHeading-671242
+
+Business info:
+Business name:
+Taqueria Ibarra Food Truck
+
+Tagline:
+Authentic Mexican Food
+
+Address:
+5005 North Brighton Avenue
+Kansas City, MO 64117
+
+Phone:
+(816) 585-2257
+
+Cuisine:
+Mexican
+
+Known hours:
+Business / Carryout:
+Mon: 11:00 AM - 9:00 PM
+Tue - Sat: 11:00 AM - 9:30 PM
+Sun: Closed
+
+Delivery:
+Mon: Closed
+Tue - Sat: 11:00 AM - 9:30 PM
+Sun: Closed
+
+Core requirement:
+This must be the same one-page interactive system as La Hamburguesa:
+- cinematic hero
+- sticky editorial nav
+- mobile nav overlay with blur/dim
+- one-page interactive menu board
+- order drawer / bottom sheet
+- Clover-ready payment/request flow
+- Google Sheets menu pipeline
+- Google Sheets location/hours pipeline
+- Google Maps support
+- corrected mobile scroll targets
+- no horizontal mobile overflow
+- polished responsive menu cards
+- owner-editable data structure
+
+Do not:
+- leave La Hamburguesa branding anywhere
+- use La Hamburguesa menu/photos/logo
+- create a generic restaurant template
+- make separate customer-facing pages
+- remove the Google Sheets/Clover/maps architecture
+
+If easiest:
+Copy/refactor the existing La Hamburguesa repo from:
+ /Users/kyle/Desktop/foodtruck
+
+into:
+ /Users/kyle/Desktop/taqueriaibarrakc
+
+Then fully rebrand and content-swap it.
+
+Design direction:
+Taqueria Ibarra should feel:
+- warm
+- authentic
+- local KC food truck
+- practical and fast
+- polished street-taqueria
+- tortilla beige, salsa red, cilantro green, grilled orange, charcoal, cream
+- premium enough to show as a serious web/order product
+
+Hero:
+Headline idea:
+“Authentic Mexican food, fast from the truck.”
+
+Alternate:
+“Tacos, birria, tortas, and more — made fresh on North Brighton.”
+
+Subcopy:
+“Order carryout or delivery from Taqueria Ibarra Food Truck in Kansas City.”
+
+Hero CTAs:
+- Start Order
+- View Menu
+- Find Us
+- Catering
+
+Nav:
+Desktop:
+MENU / STORY / LOCATIONS / CATERING / centered logo / GALLERY / HOURS / CONTACT / ORDER NOW
+
+Mobile:
+hamburger / centered logo / order now
+
+Carry over the La Hamburguesa mobile nav behavior:
+- createPortal overlay
+- dim/blur background
+- glass panel
+- body scroll lock
+- Escape closes
+- backdrop click closes
+- nav link closes overlay then scrolls
+- Order Now closes overlay and opens drawer
+
+Scroll behavior:
+Use the corrected scroll helper:
+- sticky nav height offset
+- dedicated menu-start anchor
+- View Menu lands at menu intro/category selector
+- Find Us lands at locations top
+- Catering lands at catering top
+- no CTA should land halfway into menu cards
+
+Menu pipeline:
+Keep/create:
+- lib/menu/schema.ts
+- lib/menu/local-menu.ts
+- lib/menu/google-sheet-menu.ts
+- lib/menu/get-menu.ts
+- app/api/menu/route.ts
+
+Locations pipeline:
+Keep/create:
+- lib/locations/schema.ts
+- lib/locations/local-locations.ts
+- lib/locations/google-sheet-locations.ts
+- lib/locations/get-locations.ts
+- app/api/locations/route.ts
+
+Google Maps:
+Use Google Maps, not Mapbox or Apple MapKit.
+Support:
+- NEXT_PUBLIC_GOOGLE_MAPS_API_KEY for demo browser maps
+- optional GOOGLE_MAPS_SERVER_KEY later
+- address-based map fallback
+- place/lat/lng pin if available
+- no broken map placeholders when address exists
+
+Open/Closed status:
+Use America/Chicago.
+Do not trust raw Sheet status = Open.
+Compute public status from schedule.
+
+Default business/carryout schedule:
+Mon 11:00–21:00
+Tue–Sat 11:00–21:30
+Sun closed
+
+Delivery:
+Mon closed
+Tue–Sat 11:00–21:30
+Sun closed
+
+Special Sheet statuses can override:
+- Closed
+- Sold Out
+- Catering Event
+- Moving Soon
+
+If Sheet says Open outside computed hours, public UI must still say Closed.
+
+Clover/order:
+Keep Clover-ready architecture:
+- OrderProvider
+- OrderDrawer
+- Clover payment modal/pipeline
+- /api/orders route
+- demo/request mode until customer confirms real POS/payment details
+
+If any cart item price is null:
+- show Price TBD
+- exclude from subtotal math
+- show “Final price confirmed at pickup”
+- CTA: Send Order Request
+
+If all items have numeric prices:
+- subtotal can calculate
+- Clover-ready flow can remain available
+
+Initial fallback menu:
+Use public seed data only. Treat prices as needing customer confirmation.
+
+Categories:
+- Tacos
+- Burros
+- Quesadillas
+- Tortas
+- Sides
+- Desserts
+- Drinks
+
+Seed items:
+
+Tacos:
+- Tacos
+  Description: Choice of Asada/Steak, Pastor/Marinated Pork, Tripa/Tripe, Birria/Stewed Beef, or Pollo/Chicken. Made with cilantro and onions.
+  Price: 1.99
+  Required option group:
+  Protein:
+  - Asada / Steak
+  - Pastor / Marinated Pork
+  - Tripa / Tripe
+  - Birria / Stewed Beef
+  - Pollo / Chicken
+
+Featured taco-style items to include or mark featured:
+- Asada Taco
+- Pastor Taco
+- Pollo Taco
+- Nopal Taco
+- Brisket & Cheese Taco
+- Quesabirria Tacos
+
+If exact price/details are uncertain, use price: null and TODO comment.
+
+Burros:
+- Burros
+  Description: Choice of Asada/Steak or Pastor/Marinated Pork. Includes sour cream, lettuce, beans, and pico de gallo.
+  Price: 7.25
+  Required option group:
+  Protein:
+  - Asada / Steak
+  - Pastor / Marinated Pork
+
+- Pastor Burrito
+  Price: null until confirmed
+
+Quesadillas:
+- Quesadillas
+  Description: Choice of Asada, Queso, Sincronisadas, Nopal con Tortilla, or Hongos con Tortilla. Made with cilantro and onions.
+  Price: 6.99
+  Required option group:
+  Style:
+  - Asada
+  - Queso
+  - Sincronisadas
+  - Nopal con Tortilla
+  - Hongos con Tortilla
+
+Also include as featured/menu signals:
+- Sincronisadas
+- Nopal
+- Queso
+
+Tortas:
+- Tortas
+  Description: Choice of Asada/Steak, Pastor/Marinated Pork, Cubana, or Jamon. Includes lettuce and tomatoes.
+  Price: 7.25
+  Required option group:
+  Style:
+  - Asada / Steak
+  - Pastor / Marinated Pork
+  - Cubana
+  - Jamon
+
+- Pastor Torta
+  Price: null until confirmed
+
+Sides:
+- Frijoles — 1.99
+- Arroz — 1.99
+- Toreados — 2.99
+- Guacamole — 3.50
+- Sour Cream — 0.99
+- Pico de Gallo — 1.25
+
+Desserts:
+- Paletas — 1.99
+- Triple Chocolate Cake — 3.50
+
+Drinks:
+- Cidral — 1.99
+- Coke — 2.25
+- Fanta — 2.25
+- Jarritos — 1.99
+
+Option groups:
+Use the flexible optionGroups system:
+type MenuOptionGroup = {
+  id: string;
+  label: string;
+  required: boolean;
+  options: string[];
+};
+
+MenuItem.optionGroups?: MenuOptionGroup[];
+
+Cart must show selected options clearly.
+
+Location fallback:
+id: taqueria-ibarra-north-brighton
+type: food_truck
+name: Taqueria Ibarra Food Truck
+label: Food Truck Location
+address: 5005 North Brighton Avenue
+city: Kansas City
+state: MO
+zip: 64117
+phone: (816) 585-2257
+status: Open
+statusNote: North Brighton Avenue
+timezone: America/Chicago
+
+Again: do not show Open outside computed hours.
+
+Google Sheet templates:
+Create:
+- prompt/google-sheet-menu-template.csv
+- prompt/google-sheet-locations-template.csv
+
+Menu CSV headers:
+id,active,category,section,sortOrder,name,englishName,description,price,includesFries,meatChoiceRequired,featured,imageUrl,imageAlt,availabilityLabel,optionGroupsJson
+
+Locations CSV headers:
+id,active,type,sortOrder,name,label,address,city,state,zip,hours,phone,email,status,statusNote,mapsUrl,embedUrl,lat,lng,lastUpdated,timezone,weeklyHoursJson
+
+Owner/customer checklist:
+Create a prompt or markdown file asking the customer to confirm:
+- final prices
+- exact menu item names
+- exact option choices
+- exact protein list
+- delivery rules
+- carryout vs delivery availability
+- Clover payment readiness
+- photos
+- logo approval
+- catering rules
+
+Catering:
+Use a simple catering/request form:
+- name
+- email
+- phone
+- event date
+- guest count
+- additional info
+
+Keep it demo/request-only until wired to email/CRM.
+
+SEO:
+Set metadata:
+Title:
+Taqueria Ibarra Food Truck | Kansas City Mexican Food
+
+Description:
+Order tacos, burritos, tortas, quesadillas, and more from Taqueria Ibarra Food Truck in Kansas City.
+
+JSON-LD:
+FoodEstablishment / LocalBusiness with:
+- name
+- address
+- phone
+- cuisine Mexican
+- hours
+- URL placeholder
+
+Assets implementation:
+Inspect:
+ /Users/kyle/Desktop/taqueriaibarrakc/taqueria_ibarra_web_logo_assets
+
+Copy selected production-ready logo assets into:
+ public/images/brand/
+ public/icons/
+or the project’s existing icon paths.
+
+Update:
+- app/layout.tsx metadata icons
+- manifest
+- favicon paths
+- nav logo
+- footer logo
+- any prologue/logo badge
+
+Use the same real logo consistently.
+Do not distort it.
+Keep nav logo same size as the existing La Hamburguesa-style centered badge.
+
+If the folder includes multiple favicon/icon sizes, wire them directly.
+If manifest generation scripts exist from La Hamburguesa, update them to use Taqueria Ibarra source assets.
+
+Validation:
+Run:
+npm install
+npm run build
+npm run lint
+
+Fix errors.
+
+Git:
+Initialize/connect:
+ /Users/kyle/Desktop/taqueriaibarrakc
+remote:
+ https://github.com/kbmillard/taqueriaibarrakc.git
+
+If the GitHub repo does not exist, stop and tell me.
+Do not push to the wrong repo.
+
+Final summary:
+- whether you copied/refactored from La Hamburguesa
+- logo files selected from taqueria_ibarra_web_logo_assets
+- where assets were copied
+- files changed
+- business info wired in
+- fallback menu categories/items/prices
+- Google Sheets templates created
+- location/hours behavior
+- Clover/order behavior
+- mobile behaviors carried over
+- env vars needed
+- build/lint status
+- git status
+- whether connected to kbmillard/taqueriaibarrakc

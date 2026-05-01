@@ -1,0 +1,7 @@
+id,active,category,section,sortOrder,name,englishName,description,price,includesFries,meatChoiceRequired,featured,imageUrl,imageAlt,availabilityLabel,optionGroupsJson
+tacos-choice,TRUE,Tacos,,1,Tacos,,Choice of Asada/Steak Pastor/Marinated Pork Tripa/Tripe Birria/Stewed Beef or Pollo/Chicken. Cilantro and onions.,1.99,FALSE,FALSE,FALSE,,,,"[{""id"":""protein"",""label"":""Protein"",""required"":true,""options"":[""Asada / Steak"",""Pastor / Marinated Pork"",""Tripa / Tripe"",""Birria / Stewed Beef"",""Pollo / Chicken""]}]"
+burros-choice,TRUE,Burros,,1,Burros,,Choice of Asada or Pastor. Sour cream lettuce beans pico.,7.25,FALSE,FALSE,FALSE,,,,"[{""id"":""protein"",""label"":""Protein"",""required"":true,""options"":[""Asada / Steak"",""Pastor / Marinated Pork""]}]"
+quesadillas-choice,TRUE,Quesadillas,,1,Quesadillas,,Choice of style. Cilantro and onions.,6.99,FALSE,FALSE,FALSE,,,,"[{""id"":""style"",""label"":""Style"",""required"":true,""options"":[""Asada"",""Queso"",""Sincronisadas"",""Nopal con Tortilla"",""Hongos con Tortilla""]}]"
+tortas-choice,TRUE,Tortas,,1,Tortas,,Choice of style. Lettuce and tomatoes.,7.25,FALSE,FALSE,FALSE,,,,"[{""id"":""style"",""label"":""Style"",""required"":true,""options"":[""Asada / Steak"",""Pastor / Marinated Pork"",""Cubana"",""Jamon""]}]"
+side-frijoles,TRUE,Sides,,1,Frijoles,,,1.99,FALSE,FALSE,FALSE,,,,
+drink-coke,TRUE,Drinks,,1,Coke,,,2.25,FALSE,FALSE,FALSE,,,,

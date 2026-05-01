@@ -1,0 +1,19 @@
+{
+  "name": "Taqueria Ibarra Food Truck",
+  "short_name": "Taqueria Ibarra",
+  "icons": [
+    {
+      "src": "/icons/taqueria-ibarra-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/taqueria-ibarra-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#c41e1e",
+  "background_color": "#1a1a1a",
+  "display": "standalone"
+}
