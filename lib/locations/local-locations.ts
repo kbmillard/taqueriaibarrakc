@@ -27,7 +27,7 @@ export const localLocationItems: LocationItem[] = [
     phone: "(816) 585-2257",
     email: "",
     status: "Open",
-    statusNote: "North Brighton Avenue",
+    statusNote: "",
     mapsUrl: "https://www.google.com/maps/search/?api=1&query=5005+North+Brighton+Avenue+Kansas+City+MO+64117",
     embedUrl: "",
     lat: null,

@@ -10,7 +10,8 @@
     "validate:sheets": "node scripts/run-sheet-validation.mjs",
     "validate:location-hours": "tsx scripts/validate-location-hours.ts",
     "icons": "node scripts/generate-brand-icons.mjs",
-    "menu:build": "node scripts/build-menu-from-menufy-snapshot.mjs"
+    "menu:build": "node scripts/build-menu-from-menufy-snapshot.mjs",
+    "sheets:workbook": "node scripts/generate-owner-sheets-workbook.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -33,6 +34,7 @@
     "tailwindcss": "^3.4.16",
     "to-ico": "^1.1.5",
     "tsx": "^4.21.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "xlsx": "^0.18.5"
   }
 }

@@ -16,6 +16,7 @@
 - **Menufy snapshot (reference):** `prompt/menufy-location-32419-categories-all.json` + extraction log `prompt/taqueria-ibarra-menu-scrape-notes.md`.
 - **Fallback menu (TypeScript):** `lib/menu/local-menu.ts` (regenerate: `node scripts/build-menu-from-menufy-snapshot.mjs`).
 - **Sheet template (full mirror of fallback):** `prompt/google-sheet-menu-template.csv`.
+- **Owner starter Excel (Menu + Locations tabs):** `prompt/taqueria-ibarra-google-sheets-workbook.xlsx` (`npm run sheets:workbook`).
 - **Category order + meat modal defaults:** `lib/menu/schema.ts` (`MENU_CATEGORY_ORDER`, `meatChoices`).
 - **Category tab styling (labels/colors):** `lib/menu/category-meta.ts`.
 - **Schema / types:** `lib/menu/schema.ts` (optional `section`, `englishName`, `availabilityLabel`, `optionGroups`, `imageAlt`).
@@ -32,6 +33,8 @@
 
 - **Static location + hours copy:** `lib/data/locations.ts`.
 - **Truck status:** From each `food_truck` row’s `status` / `statusNote` in the locations Sheet (or local fallback).
+- **Unified locations UI + map:** `components/locations/LocationsSection.tsx`, `components/locations/UnifiedTruckLocationPanel.tsx`, `components/locations/LocationMapEmbed.tsx`.
+- **Optional truck pin CSV:** `lib/locations/truck-pin-sheet.ts`, template `prompt/google-sheet-truck-pin-template.csv` — merged in `lib/locations/get-locations.ts` before geocoding.
 
 ## Catering form
 

@@ -1,5 +1,6 @@
 import { geocodeLocationAddress, getGeocodeApiKey } from "./google-geocode";
 import { parseLocationsFromCsvText } from "./google-sheet-locations";
+import { applyTruckPinToLocations, fetchTruckPinRow } from "./truck-pin-sheet";
 import { buildMapEmbedSrcForResponse, formatAddressLine } from "./helpers";
 import { localLocationItems } from "./local-locations";
 import type { LocationItem, LocationsResponse, LocationsSource } from "./schema";
@@ -99,6 +100,11 @@ function buildResponse(
 /**
  * Locations CSV is cached ~5 minutes via fetch `revalidate: 300`.
  */
+async function withTruckPinMerge(items: LocationItem[]): Promise<LocationItem[]> {
+  const pin = await fetchTruckPinRow();
+  return applyTruckPinToLocations(items, pin);
+}
+
 export async function getLocationsCatalog(): Promise<LocationsResponse> {
   const updatedAt = new Date().toISOString();
   const url = process.env.LOCATIONS_CSV_URL ?? process.env.NEXT_PUBLIC_LOCATIONS_CSV_URL;
@@ -110,7 +116,8 @@ export async function getLocationsCatalog(): Promise<LocationsResponse> {
       const text = await res.text();
       const parsed = parseLocationsFromCsvText(text);
       if (parsed.length === 0) throw new Error("Parsed zero location rows");
-      const enriched = await enrichLocationItems(parsed);
+      const merged = await withTruckPinMerge(parsed);
+      const enriched = await enrichLocationItems(merged);
       return buildResponse(enriched, "google-sheet", updatedAt);
     } catch (e) {
       if (process.env.NODE_ENV === "development") {
@@ -119,6 +126,7 @@ export async function getLocationsCatalog(): Promise<LocationsResponse> {
     }
   }
 
-  const enrichedLocal = await enrichLocationItems(localLocationItems);
+  const mergedLocal = await withTruckPinMerge([...localLocationItems]);
+  const enrichedLocal = await enrichLocationItems(mergedLocal);
   return buildResponse(enrichedLocal, "local-fallback", updatedAt);
 }

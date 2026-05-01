@@ -39,3 +39,7 @@ yarn-error.log*
 # Customer workbook (copy to repo root to run npm run validate:sheets; not committed)
 la_hamburguesa_loca_customer_google_sheets.xlsx
 taqueria_ibarra_customer_google_sheets.xlsx
+
+# Local food photography source pack (WebP copies live under public/images/popular)
+taqueria_ibarra_food_assets/
+taqueria_ibarra_food_assets_dev_ready.zip

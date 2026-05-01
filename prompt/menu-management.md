@@ -8,6 +8,18 @@
    (reads `prompt/menufy-location-32419-categories-all.json`).
 3. **Extraction notes:** `prompt/taqueria-ibarra-menu-scrape-notes.md` — what was captured from the order page / Menufy API, TODOs for modifiers, and redacted network log excerpts.
 
+## Starter workbook (.xlsx)
+
+`prompt/taqueria-ibarra-google-sheets-workbook.xlsx` contains three tabs — **Menu**, **Locations**, and **Truck pin** — with the same columns as the matching CSV templates in `prompt/`. Upload it to Google Drive, open with Google Sheets, then use **File → Share → Publish to web** (CSV) on each tab and set `MENU_CSV_URL`, `LOCATIONS_CSV_URL`, and (optional) `TRUCK_PIN_CSV_URL` on Vercel.
+
+The **Truck pin** tab is a single-row override for the primary food truck’s map address (and optional `lat` / `lng` / `placeId`). Use it when the truck moves often and you do not want to edit the full Locations row each time.
+
+After you change the canonical CSVs in the repo, regenerate the workbook:
+
+```bash
+npm run sheets:workbook
+```
+
 ## Sheet columns (required header row)
 
 `id`, `active`, `category`, `section`, `sortOrder`, `name`, `englishName`, `description`, `price`, `includesFries`, `meatChoiceRequired`, `featured`, `imageUrl`, `imageAlt`, `availabilityLabel`, `optionGroupsJson`
