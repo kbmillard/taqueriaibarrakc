@@ -28,7 +28,7 @@ export function loadGoogleMapsScript(apiKey: string): Promise<void> {
 
     const s = document.createElement("script");
     s.async = true;
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&callback=__foodtruckGmapsInit`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&loading=async&callback=__foodtruckGmapsInit`;
     s.onerror = () => {
       loadPromise = null;
       delete window.__foodtruckGmapsInit;

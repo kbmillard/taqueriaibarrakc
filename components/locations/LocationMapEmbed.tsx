@@ -43,12 +43,14 @@ export function LocationMapEmbed({ loc, className = "h-[280px] w-full min-h-[220
 
   const useGreedyJsMap =
     coordsOk && Boolean(apiKey) && (!ownerEmbed || !isThirdPartyEmbedUrl(ownerEmbed));
+  const src = useGreedyJsMap ? null : resolvedEmbedSrc(loc);
+  /** JS Geocoder only when there is no iframe src (Embed v1 / legacy embed works with the same public key). */
   const useClientResolve =
     Boolean(apiKey) &&
     !coordsOk &&
     (Boolean(placeId) || Boolean(line.trim())) &&
-    !ownerEmbed?.trim();
-  const src = useGreedyJsMap ? null : resolvedEmbedSrc(loc);
+    !ownerEmbed?.trim() &&
+    !src;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-charcoal">
