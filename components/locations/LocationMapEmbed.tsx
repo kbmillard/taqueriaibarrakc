@@ -44,20 +44,24 @@ export function LocationMapEmbed({ loc, className = "h-[280px] w-full min-h-[220
   const useGreedyJsMap =
     coordsOk && Boolean(apiKey) && (!ownerEmbed || !isThirdPartyEmbedUrl(ownerEmbed));
   const src = useGreedyJsMap ? null : resolvedEmbedSrc(loc);
-  /** JS Geocoder only when there is no iframe src (Embed v1 / legacy embed works with the same public key). */
+  /** JS map uses wheel zoom (no ⌘+scroll). Prefer over iframe when a public key exists. */
   const useClientResolve =
     Boolean(apiKey) &&
     !coordsOk &&
     (Boolean(placeId) || Boolean(line.trim())) &&
-    !ownerEmbed?.trim() &&
-    !src;
+    !ownerEmbed?.trim();
 
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-charcoal">
       {useGreedyJsMap && lat != null && lng != null ? (
         <GoogleMapGreedy lat={lat} lng={lng} title={loc.name} className={className} />
       ) : useClientResolve ? (
-        <GoogleMapClientResolved loc={loc} title={loc.name} className={className} />
+        <GoogleMapClientResolved
+          loc={loc}
+          title={loc.name}
+          className={className}
+          iframeFallbackSrc={src}
+        />
       ) : src ? (
         <iframe
           title={`Map — ${loc.name}`}

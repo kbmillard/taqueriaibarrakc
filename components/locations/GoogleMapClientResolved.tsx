@@ -12,14 +12,16 @@ type Props = {
   loc: LocationItem;
   title?: string;
   className?: string;
+  /** Embed URL (e.g. Maps Embed v1) if JS geocode / script load fails — uses ⌘+scroll zoom. */
+  iframeFallbackSrc?: string | null;
 };
 
 /**
  * When the API has no lat/lng yet, resolve placeId or address in the browser with the
- * Maps JavaScript Geocoder (HTTP-referrer key). On failure, shows an Open in Maps link
- * instead of a Maps iframe (iframes use cooperative ⌘+scroll zoom).
+ * Maps JavaScript Geocoder, then render a greedy (wheel) map. On failure, optional iframe
+ * or Open in Maps.
  */
-export function GoogleMapClientResolved({ loc, title, className }: Props) {
+export function GoogleMapClientResolved({ loc, title, className, iframeFallbackSrc }: Props) {
   const line = formatAddressLine(loc);
   const placeId = loc.placeId?.trim();
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -83,6 +85,18 @@ export function GoogleMapClientResolved({ loc, title, className }: Props) {
   }
 
   if (showMapsLinkFallback) {
+    const fb = iframeFallbackSrc?.trim();
+    if (fb) {
+      return (
+        <iframe
+          title={`Map — ${loc.name}`}
+          className={`${className ?? ""} bg-charcoal`}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          src={fb}
+        />
+      );
+    }
     return (
       <div
         className={cn(
