@@ -5,7 +5,6 @@ import { CateringSection } from "@/components/catering/CateringSection";
 import { FinalConversion } from "@/components/cta/FinalConversion";
 import { EssenceSection } from "@/components/essence/EssenceSection";
 import { SiteFooter } from "@/components/footer/SiteFooter";
-import { GallerySection } from "@/components/gallery/GallerySection";
 import { Hero } from "@/components/hero/Hero";
 import { InteractiveMenu } from "@/components/menu/InteractiveMenu";
 import { LocationsSection } from "@/components/locations/LocationsSection";
@@ -33,7 +32,6 @@ export function HomeView() {
         <PopularOrders />
         <StorySection />
         <CateringSection />
-        <GallerySection />
         <FinalConversion />
         <SiteFooter />
       </main>
