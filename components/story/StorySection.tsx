@@ -12,28 +12,91 @@ type StorySlide = {
   lineEn: string;
 };
 
+/** Twelve slides: owner photos + on-brand truck & food imagery (same frame as Story “screenshot 5”). */
 const STORY_SLIDES: StorySlide[] = [
   {
-    src: "/images/story/taqueria-truck-1.jpeg",
-    alt: "Taqueria Ibarra Food Truck service window and warm lighting in Kansas City.",
+    src: "/images/story-slides/01-menu-board.png",
+    alt: "Taqueria Ibarra menu board with specials and phone number.",
+    lineEs: "Carta en la pared",
+    lineEn: "The menu you see at the window",
+  },
+  {
+    src: "/images/story-slides/02-drinks-bucket.png",
+    alt: "Assorted bottled sodas in a Farm Fresh bucket at the truck window.",
+    lineEs: "Refrescos fríos",
+    lineEn: "Cold drinks ready at the pass",
+  },
+  {
+    src: "/images/story-slides/03-service-sign.png",
+    alt: "Please hold your horses sign at the Taqueria Ibarra service counter.",
+    lineEs: "Con calma",
+    lineEn: "Good food is worth the short wait",
+  },
+  {
+    src: "/images/story-slides/04-truck-canopy.png",
+    alt: "Taqueria Ibarra food truck with canopy and menu on North Brighton.",
+    lineEs: "La troca en KC",
+    lineEn: "North Brighton nights, open neon",
+  },
+  {
+    src: "/images/popular/05-tacos-with-salsas.webp",
+    alt: "Street tacos with salsas and lime.",
     lineEs: "Sabor de la calle",
     lineEn: "street flavor, family care",
   },
   {
-    src: "/images/story/taqueria-truck-2.avif",
-    alt: "Taqueria Ibarra Food Truck — tacos and Mexican street food on North Brighton.",
+    src: "/images/popular/06-shrimp-salad.webp",
+    alt: "Fresh plate from the truck.",
+    lineEs: "Platos honestos",
+    lineEn: "honest portions, real heat",
+  },
+  {
+    src: "/images/popular/07-tacos-and-drinks-combo.webp",
+    alt: "Tacos and drinks at the truck.",
+    lineEs: "Para llevar",
+    lineEn: "built for carryout and delivery",
+  },
+  {
+    src: "/images/popular/08-caldo-and-tacos.webp",
+    alt: "Caldo and tacos spread.",
     lineEs: "Hecho en KC",
     lineEn: "made fresh in Kansas City",
   },
+  {
+    src: "/images/popular/09-loaded-burrito.webp",
+    alt: "Loaded burrito from Taqueria Ibarra.",
+    lineEs: "Bocados generosos",
+    lineEn: "generous bites, KC pride",
+  },
+  {
+    src: "/images/popular/10-taco-closeup.webp",
+    alt: "Close-up of tacos on the plancha.",
+    lineEs: "Tortillas que importan",
+    lineEn: "tortillas treated like they matter",
+  },
+  {
+    src: "/images/story/taqueria-truck-1.jpeg",
+    alt: "Taqueria Ibarra Food Truck service window and warm lighting.",
+    lineEs: "La fila avanza",
+    lineEn: "the line keeps moving",
+  },
+  {
+    src: "/images/story/taqueria-truck-2.avif",
+    alt: "Taqueria Ibarra Food Truck tacos and street food on North Brighton.",
+    lineEs: "Noches de KC",
+    lineEn: "KC nights, same corner",
+  },
 ];
 
-const AUTO_ADVANCE_MS = 5000;
-const SLIDE_ZOOM_OUT_S = 5.25;
+const AUTO_ADVANCE_MS = 5400;
+/** Ken Burns–style zoom-out duration (matches advance rhythm). */
+const SLIDE_ZOOM_OUT_S = 5.35;
+const ZOOM_START = 1.2;
 
 export function StorySection() {
   const prefersReducedMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
-  const [zoomKeys, setZoomKeys] = useState([0, 0]);
+  const [zoomKeys, setZoomKeys] = useState(() => STORY_SLIDES.map(() => 0));
   const prevIndexRef = useRef(-1);
 
   useEffect(() => {
@@ -54,7 +117,7 @@ export function StorySection() {
     prevIndexRef.current = index;
   }, [index]);
 
-  const fadeDuration = prefersReducedMotion ? 0 : 1.15;
+  const fadeDuration = prefersReducedMotion ? 0 : 1.05;
   const slide = STORY_SLIDES[index]!;
 
   return (
@@ -92,7 +155,7 @@ export function StorySection() {
             className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl border border-white/10 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55)]"
             role="region"
             aria-roledescription="carousel"
-            aria-label="Taqueria Ibarra Food Truck story"
+            aria-label="Taqueria Ibarra Food Truck story slideshow"
           >
             {STORY_SLIDES.map((s, i) => (
               <motion.div
@@ -112,11 +175,11 @@ export function StorySection() {
                   <motion.div
                     key={zoomKeys[i]}
                     className="absolute inset-0 h-full w-full"
-                    initial={{ scale: 1.1 }}
-                    animate={{ scale: index === i ? 1 : 1.08 }}
+                    initial={{ scale: ZOOM_START }}
+                    animate={{ scale: index === i ? 1 : ZOOM_START * 0.98 }}
                     transition={{
-                      duration: index === i ? SLIDE_ZOOM_OUT_S : 0.35,
-                      ease: index === i ? [0.12, 0.82, 0.24, 1] : [0.4, 0, 0.2, 1],
+                      duration: index === i ? SLIDE_ZOOM_OUT_S : 0.32,
+                      ease: index === i ? [0.08, 0.72, 0.2, 1] : [0.4, 0, 0.2, 1],
                     }}
                   >
                     <Image
@@ -162,6 +225,17 @@ export function StorySection() {
                   </p>
                 </motion.div>
               </AnimatePresence>
+            </div>
+            <div
+              className="pointer-events-none absolute bottom-3 right-4 flex gap-1.5 sm:bottom-4 sm:right-6"
+              aria-hidden
+            >
+              {STORY_SLIDES.map((dot, i) => (
+                <span
+                  key={dot.src}
+                  className={`h-1.5 w-1.5 rounded-full transition ${i === index ? "bg-cream" : "bg-cream/35"}`}
+                />
+              ))}
             </div>
           </div>
         </motion.div>
