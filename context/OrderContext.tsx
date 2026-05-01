@@ -23,9 +23,11 @@ import type {
   OrderStatus,
   TipPreset,
 } from "@/lib/types/order";
+import { getCheckoutBlockingErrors, isCheckoutValid } from "@/lib/order/validate-checkout";
 
 const TAX_RATE = 0.088;
-const DELIVERY_FEE_CENTS = 399;
+/** TODO: Delivery fee when live delivery rules and payment are confirmed. */
+const DELIVERY_FEE_CENTS = 0;
 
 function newLineId() {
   return `line_${Math.random().toString(36).slice(2, 10)}`;
@@ -74,6 +76,8 @@ type OrderContextValue = {
   totalCents: number;
   canOpenPayment: boolean;
   canSendOrderRequest: boolean;
+  /** Inline validation messages for the order drawer (empty object when valid). */
+  checkoutErrors: Record<string, string>;
   openOrderPanel: () => void;
   scrollToSection: (id: string, options?: { offset?: number }) => void;
   focusMenu: () => void;
@@ -95,6 +99,7 @@ const initialCustomer: CustomerInfo = {
   city: "",
   state: "",
   postalCode: "",
+  deliveryInstructions: "",
 };
 
 function normMeat(m?: string) {
@@ -214,12 +219,12 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   const deliveryFeeCents = fulfillment === "delivery" ? DELIVERY_FEE_CENTS : 0;
 
   const tipCents = useMemo(() => {
-    if (cartHasUnpricedItems) return 0;
+    if (cartHasUnpricedItems || fulfillment === "delivery") return 0;
     if (tipPreset === "none") return 0;
     if (tipPreset === "custom") return Math.max(0, customTipCents);
     const pct = Number(tipPreset) / 100;
     return Math.round(subtotalCents * pct);
-  }, [cartHasUnpricedItems, customTipCents, subtotalCents, tipPreset]);
+  }, [cartHasUnpricedItems, customTipCents, fulfillment, subtotalCents, tipPreset]);
 
   const taxCents = useMemo(() => {
     if (cartHasUnpricedItems) return 0;
@@ -231,30 +236,25 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     return subtotalCents + deliveryFeeCents + taxCents + tipCents;
   }, [cartHasUnpricedItems, deliveryFeeCents, subtotalCents, taxCents, tipCents]);
 
-  const deliveryFieldsOk =
-    fulfillment === "pickup" ||
-    Boolean(
-      customer.addressLine1?.trim() &&
-        customer.city?.trim() &&
-        customer.state?.trim() &&
-        customer.postalCode?.trim(),
-    );
+  const checkoutErrors = useMemo(
+    () =>
+      getCheckoutBlockingErrors({
+        fulfillment,
+        cartLength: cart.length,
+        customer,
+      }),
+    [cart.length, customer, fulfillment],
+  );
 
-  const checkoutFormValid = useMemo(() => {
-    return (
-      cart.length > 0 &&
-      customer.name.trim().length > 1 &&
-      customer.phone.trim().length > 6 &&
-      requestedTime.trim().length > 0 &&
-      deliveryFieldsOk
-    );
-  }, [cart.length, customer, deliveryFieldsOk, requestedTime]);
-
-  const canSendOrderRequest = checkoutFormValid;
+  const canSendOrderRequest = isCheckoutValid(checkoutErrors);
 
   const canOpenPayment = useMemo(() => {
-    return checkoutFormValid && !cartHasUnpricedItems;
-  }, [cartHasUnpricedItems, checkoutFormValid]);
+    return (
+      canSendOrderRequest &&
+      !cartHasUnpricedItems &&
+      fulfillment === "pickup"
+    );
+  }, [canSendOrderRequest, cartHasUnpricedItems, fulfillment]);
 
   const openOrderPanel = useCallback(() => {
     setOrderDrawerOpen(true);
@@ -276,6 +276,16 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     if (!canSendOrderRequest) return;
     setOrderStatus("submitting");
     setOrderError(null);
+    const pickupPayload =
+      fulfillment === "pickup" ? { locationId: pickupLocation } : undefined;
+    const deliveryPayload =
+      fulfillment === "delivery"
+        ? {
+            address: customer.addressLine1?.trim() ?? "",
+            unit: customer.addressLine2?.trim() || undefined,
+            instructions: customer.deliveryInstructions?.trim() || undefined,
+          }
+        : undefined;
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -283,11 +293,14 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           paymentMode: "request",
           fulfillment,
+          fulfillmentType: fulfillment,
           pickupLocation: fulfillment === "pickup" ? pickupLocation : undefined,
+          pickup: pickupPayload,
+          delivery: deliveryPayload,
           items: cart,
           customer,
-          requestedTime,
-          orderNotes,
+          requestedTime: requestedTime.trim() || undefined,
+          orderNotes: orderNotes.trim() || undefined,
           subtotalCents: cartHasUnpricedItems ? null : subtotalCents,
           taxCents: cartHasUnpricedItems ? null : taxCents,
           tipCents: cartHasUnpricedItems ? null : tipCents,
@@ -307,7 +320,9 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       setConfirmationId(data.orderId ?? null);
       setSuccessMessage(
         data.message ??
-          "Order request received. We’ll confirm pricing and pickup time.",
+          (fulfillment === "delivery"
+            ? "Delivery request ready. We’ll confirm pricing, delivery availability, and arrival time."
+            : "Order request ready. We’ll confirm pricing and pickup time."),
       );
       setOrderStatus("confirmed");
       setCart([]);
@@ -339,17 +354,21 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       setOrderStatus("submitting");
       setOrderError(null);
       try {
+        const pickupPayload =
+          fulfillment === "pickup" ? { locationId: pickupLocation } : undefined;
         const res = await fetch("/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             paymentMode: "clover",
             fulfillment,
+            fulfillmentType: fulfillment,
             pickupLocation: fulfillment === "pickup" ? pickupLocation : undefined,
+            pickup: pickupPayload,
             items: cart,
             customer,
-            requestedTime,
-            orderNotes,
+            requestedTime: requestedTime.trim() || undefined,
+            orderNotes: orderNotes.trim() || undefined,
             subtotalCents,
             taxCents,
             tipCents,
@@ -434,6 +453,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       totalCents,
       canOpenPayment,
       canSendOrderRequest,
+      checkoutErrors,
       openOrderPanel,
       scrollToSection,
       focusMenu,
@@ -445,6 +465,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       addItem,
       canOpenPayment,
       canSendOrderRequest,
+      checkoutErrors,
       cart,
       cartHasUnpricedItems,
       cloverToken,

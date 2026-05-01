@@ -30,26 +30,48 @@ export type CartLine = {
   includesFries?: boolean;
 };
 
+/** Customer + delivery contact fields (flat for forms; API may nest into `delivery`). */
 export type CustomerInfo = {
   name: string;
   phone: string;
   email?: string;
+  /** Delivery street address (full line acceptable). */
   addressLine1?: string;
+  /** Apt / suite / unit */
   addressLine2?: string;
   city?: string;
   state?: string;
   postalCode?: string;
+  /** Notes for driver / drop-off (delivery). */
+  deliveryInstructions?: string;
 };
 
 export type TipPreset = "none" | "15" | "18" | "20" | "custom";
 
+export type OrderPickupPayload = {
+  locationId?: PickupLocationId;
+};
+
+export type OrderDeliveryPayload = {
+  address: string;
+  unit?: string;
+  instructions?: string;
+};
+
 export type OrderPayload = {
   paymentMode: PaymentMode;
+  /** Primary fulfillment discriminator (backward compatible). */
   fulfillment: FulfillmentType;
+  /** Same as `fulfillment` when clients send structured payloads. */
+  fulfillmentType?: FulfillmentType;
   pickupLocation?: PickupLocationId;
+  pickup?: OrderPickupPayload;
+  delivery?: OrderDeliveryPayload;
   items: CartLine[];
   customer: CustomerInfo;
-  requestedTime: string;
+  /** Preferred pickup / arrival window — optional for demo requests. */
+  requestedTime?: string;
+  /** Special order notes (pickup or delivery). */
   orderNotes?: string;
   subtotalCents: number | null;
   taxCents: number | null;

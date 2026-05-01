@@ -26,6 +26,13 @@ function lineLineTotal(cents: number | null, qty: number) {
   return formatMoney(cents * qty);
 }
 
+function fieldInputClass(err?: string) {
+  return cn(
+    "mt-1 w-full rounded-xl border bg-charcoal px-3 py-2 text-sm text-cream outline-none transition",
+    err ? "border-salsa/60 ring-1 ring-salsa/25" : "border-white/10 focus:border-cream/40",
+  );
+}
+
 export function OrderDrawer() {
   const { itemsById } = useMenuCatalog();
   const { data: locData } = useLocationsCatalog();
@@ -57,6 +64,7 @@ export function OrderDrawer() {
     setPaymentModalOpen,
     canOpenPayment,
     canSendOrderRequest,
+    checkoutErrors,
     cartHasUnpricedItems,
     orderStatus,
     orderError,
@@ -69,6 +77,16 @@ export function OrderDrawer() {
   const trucks = locData?.foodTruckLocations ?? [];
   const primaryRestaurant = restaurants[0];
   const primaryTruck = trucks[0];
+
+  const pickupSummary =
+    pickupLocation === "restaurant" && primaryRestaurant
+      ? `${primaryRestaurant.name} — ${primaryRestaurant.address}, ${[primaryRestaurant.city, primaryRestaurant.state, primaryRestaurant.zip].filter(Boolean).join(" ")}`
+      : primaryTruck
+        ? `${primaryTruck.name} — ${primaryTruck.address}, ${[primaryTruck.city, primaryTruck.state, primaryTruck.zip].filter(Boolean).join(" ")}`
+        : "—";
+
+  const showRequestOnly = cartHasUnpricedItems || fulfillment === "delivery";
+  const showTipBlock = !cartHasUnpricedItems && fulfillment === "pickup";
 
   return (
     <AnimatePresence>
@@ -98,7 +116,7 @@ export function OrderDrawer() {
             aria-modal="true"
             aria-label="Order and checkout"
           >
-            <header className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+            <header className="flex shrink-0 items-center justify-between border-b border-white/10 px-5 py-4">
               <div className="flex items-center gap-3">
                 <BrandLogo width={48} height={48} />
                 <div>
@@ -117,7 +135,7 @@ export function OrderDrawer() {
               </button>
             </header>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 py-5">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6 overflow-y-auto overflow-x-hidden px-5 py-5">
               {confirmationId ? (
                 <div className="rounded-2xl border border-agave/40 bg-agave/10 p-4 text-cream">
                   <p className="font-display text-2xl">You are in.</p>
@@ -139,8 +157,16 @@ export function OrderDrawer() {
 
               {cartHasUnpricedItems && cart.length > 0 ? (
                 <p className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-cream/80">
-                  Final price confirmed at pickup for items marked Price TBD. You can still send an
-                  order request — we will confirm pricing and pickup time.
+                  Final price confirmed before your order is prepared for items marked Price TBD.
+                  You can still send an order request — we will confirm pricing and timing.
+                </p>
+              ) : null}
+
+              {fulfillment === "delivery" && cart.length > 0 ? (
+                <p className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-cream/75">
+                  {/* TODO: Add delivery fee, delivery radius, and live payment rules after customer confirms. */}
+                  Delivery is request-only for now — we will confirm availability and total before
+                  preparing your order.
                 </p>
               ) : null}
 
@@ -151,6 +177,9 @@ export function OrderDrawer() {
                     <p className="text-sm">
                       Add from the menu — your cart updates instantly.
                     </p>
+                    {checkoutErrors.cart ? (
+                      <p className="text-xs text-salsa">{checkoutErrors.cart}</p>
+                    ) : null}
                   </div>
                 ) : (
                   <ul className="space-y-4">
@@ -231,6 +260,22 @@ export function OrderDrawer() {
                 )}
               </section>
 
+              {cart.length > 0 ? (
+                <section
+                  className="space-y-2 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm"
+                  aria-label="Order summary"
+                >
+                  <SummaryRow label="Fulfillment" value={fulfillment === "pickup" ? "Pickup" : "Delivery"} />
+                  {fulfillment === "pickup" ? (
+                    <SummaryRow label="Pickup at" value={pickupSummary} />
+                  ) : customer.addressLine1?.trim() ? (
+                    <SummaryRow label="Deliver to" value={customer.addressLine1.trim()} />
+                  ) : (
+                    <p className="text-xs text-cream/55">Enter a delivery address below.</p>
+                  )}
+                </section>
+              ) : null}
+
               <section className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
                 <p className="text-xs uppercase tracking-editorial text-cream/50">
                   Fulfillment
@@ -239,7 +284,7 @@ export function OrderDrawer() {
                   <button
                     type="button"
                     className={cn(
-                      "flex-1 rounded-full py-2 text-xs uppercase tracking-editorial",
+                      "min-h-[44px] flex-1 rounded-full py-2.5 text-xs uppercase tracking-editorial",
                       fulfillment === "pickup"
                         ? "bg-cream text-charcoal"
                         : "text-cream/70",
@@ -251,7 +296,7 @@ export function OrderDrawer() {
                   <button
                     type="button"
                     className={cn(
-                      "flex-1 rounded-full py-2 text-xs uppercase tracking-editorial",
+                      "min-h-[44px] flex-1 rounded-full py-2.5 text-xs uppercase tracking-editorial",
                       fulfillment === "delivery"
                         ? "bg-cream text-charcoal"
                         : "text-cream/70",
@@ -261,7 +306,8 @@ export function OrderDrawer() {
                     Delivery
                   </button>
                 </div>
-                {fulfillment === "pickup" ? (
+
+                {fulfillment === "pickup" && (primaryRestaurant || primaryTruck) ? (
                   <div className="space-y-2">
                     <p className="text-xs text-cream/50">Pickup location</p>
                     <div className="flex flex-col gap-2">
@@ -269,7 +315,7 @@ export function OrderDrawer() {
                         <button
                           type="button"
                           className={cn(
-                            "rounded-xl border px-3 py-2 text-left text-xs",
+                            "min-h-[44px] rounded-xl border px-3 py-2.5 text-left text-xs leading-snug",
                             pickupLocation === "restaurant"
                               ? "border-cream bg-cream/10 text-cream"
                               : "border-white/10 text-cream/80 hover:bg-white/5",
@@ -283,7 +329,7 @@ export function OrderDrawer() {
                         <button
                           type="button"
                           className={cn(
-                            "rounded-xl border px-3 py-2 text-left text-xs",
+                            "min-h-[44px] rounded-xl border px-3 py-2.5 text-left text-xs leading-snug",
                             pickupLocation === "truck"
                               ? "border-cream bg-cream/10 text-cream"
                               : "border-white/10 text-cream/80 hover:bg-white/5",
@@ -293,101 +339,112 @@ export function OrderDrawer() {
                           {primaryTruck.name} — {primaryTruck.address}
                         </button>
                       ) : null}
-                      {!primaryRestaurant && !primaryTruck ? (
-                        <p className="text-xs text-cream/60">
-                          Pickup locations load from the catalog — refresh if this stays empty.
-                        </p>
-                      ) : null}
                     </div>
                   </div>
                 ) : null}
+
                 {fulfillment === "delivery" ? (
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <label className="text-xs text-cream/60 sm:col-span-2">
-                      Street
+                  <div className="space-y-3">
+                    <p className="rounded-lg bg-white/5 p-3 text-xs leading-relaxed text-cream/75">
+                      Delivery available Tue–Sat, 11:00 AM – 9:30 PM.
+                      {/* TODO: Enforce delivery hours in America/Chicago before accepting live delivery orders. */}
+                    </p>
+                    <label className="block text-xs text-cream/60">
+                      Delivery address
+                      <span className="text-salsa"> *</span>
                       <input
-                        className="mt-1 w-full rounded-xl border border-white/10 bg-charcoal px-3 py-2 text-sm text-cream"
+                        className={fieldInputClass(checkoutErrors.deliveryAddress)}
                         value={customer.addressLine1 ?? ""}
                         onChange={(e) => setCustomer({ addressLine1: e.target.value })}
+                        autoComplete="street-address"
+                        placeholder="Street, city, state, ZIP"
+                      />
+                      {checkoutErrors.deliveryAddress ? (
+                        <span className="mt-1 block text-xs text-salsa">
+                          {checkoutErrors.deliveryAddress}
+                        </span>
+                      ) : null}
+                    </label>
+                    <label className="block text-xs text-cream/60">
+                      Apt / suite
+                      <input
+                        className={fieldInputClass()}
+                        value={customer.addressLine2 ?? ""}
+                        onChange={(e) => setCustomer({ addressLine2: e.target.value })}
+                        autoComplete="address-line2"
                       />
                     </label>
-                    <label className="text-xs text-cream/60">
-                      City
-                      <input
-                        className="mt-1 w-full rounded-xl border border-white/10 bg-charcoal px-3 py-2 text-sm text-cream"
-                        value={customer.city ?? ""}
-                        onChange={(e) => setCustomer({ city: e.target.value })}
-                      />
-                    </label>
-                    <label className="text-xs text-cream/60">
-                      State
-                      <input
-                        className="mt-1 w-full rounded-xl border border-white/10 bg-charcoal px-3 py-2 text-sm text-cream"
-                        value={customer.state ?? ""}
-                        onChange={(e) => setCustomer({ state: e.target.value })}
-                      />
-                    </label>
-                    <label className="text-xs text-cream/60 sm:col-span-2">
-                      ZIP
-                      <input
-                        className="mt-1 w-full rounded-xl border border-white/10 bg-charcoal px-3 py-2 text-sm text-cream"
-                        value={customer.postalCode ?? ""}
-                        onChange={(e) => setCustomer({ postalCode: e.target.value })}
+                    <label className="block text-xs text-cream/60">
+                      Delivery instructions
+                      <textarea
+                        className={cn(fieldInputClass(), "min-h-[72px] resize-y")}
+                        value={customer.deliveryInstructions ?? ""}
+                        onChange={(e) => setCustomer({ deliveryInstructions: e.target.value })}
+                        placeholder="Gate code, meet curbside, etc."
                       />
                     </label>
                   </div>
                 ) : null}
               </section>
 
-              <section className="grid gap-3 sm:grid-cols-2">
-                <label className="text-xs text-cream/60">
+              <section className="grid min-w-0 gap-3 sm:grid-cols-2">
+                <label className="block text-xs text-cream/60 sm:col-span-1">
                   Name
+                  <span className="text-salsa"> *</span>
                   <input
-                    className="mt-1 w-full rounded-xl border border-white/10 bg-charcoal px-3 py-2 text-sm text-cream"
+                    className={fieldInputClass(checkoutErrors.name)}
                     value={customer.name}
                     onChange={(e) => setCustomer({ name: e.target.value })}
                     autoComplete="name"
                   />
+                  {checkoutErrors.name ? (
+                    <span className="mt-1 block text-xs text-salsa">{checkoutErrors.name}</span>
+                  ) : null}
                 </label>
-                <label className="text-xs text-cream/60">
+                <label className="block text-xs text-cream/60 sm:col-span-1">
                   Phone
+                  <span className="text-salsa"> *</span>
                   <input
-                    className="mt-1 w-full rounded-xl border border-white/10 bg-charcoal px-3 py-2 text-sm text-cream"
+                    className={fieldInputClass(checkoutErrors.phone)}
                     value={customer.phone}
                     onChange={(e) => setCustomer({ phone: e.target.value })}
                     inputMode="tel"
                     autoComplete="tel"
                   />
+                  {checkoutErrors.phone ? (
+                    <span className="mt-1 block text-xs text-salsa">{checkoutErrors.phone}</span>
+                  ) : null}
                 </label>
-                <label className="text-xs text-cream/60 sm:col-span-2">
+                <label className="block text-xs text-cream/60 sm:col-span-2">
                   Email (optional)
                   <input
-                    className="mt-1 w-full rounded-xl border border-white/10 bg-charcoal px-3 py-2 text-sm text-cream"
+                    className={fieldInputClass()}
                     value={customer.email ?? ""}
                     onChange={(e) => setCustomer({ email: e.target.value })}
                     autoComplete="email"
                   />
                 </label>
-                <label className="text-xs text-cream/60 sm:col-span-2">
-                  Requested time
+                <label className="block text-xs text-cream/60 sm:col-span-2">
+                  Requested time (optional)
                   <input
-                    className="mt-1 w-full rounded-xl border border-white/10 bg-charcoal px-3 py-2 text-sm text-cream"
+                    className={fieldInputClass()}
                     value={requestedTime}
                     onChange={(e) => setRequestedTime(e.target.value)}
                     placeholder="e.g. Today 7:30 PM"
                   />
                 </label>
-                <label className="text-xs text-cream/60 sm:col-span-2">
-                  Order notes (optional)
+                <label className="block text-xs text-cream/60 sm:col-span-2">
+                  Order notes
                   <textarea
-                    className="mt-1 min-h-[80px] w-full rounded-xl border border-white/10 bg-charcoal px-3 py-2 text-sm text-cream"
+                    className={cn(fieldInputClass(), "min-h-[80px] resize-y")}
                     value={orderNotes}
                     onChange={(e) => setOrderNotes(e.target.value)}
+                    placeholder="Allergies, extra salsa, etc."
                   />
                 </label>
               </section>
 
-              {!cartHasUnpricedItems ? (
+              {showTipBlock ? (
                 <section className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-xs uppercase tracking-editorial text-cream/50">Tip</p>
                   <div className="flex flex-wrap gap-2">
@@ -404,7 +461,7 @@ export function OrderDrawer() {
                         key={id}
                         type="button"
                         className={cn(
-                          "rounded-full border px-3 py-1.5 text-xs uppercase tracking-editorial",
+                          "min-h-[40px] rounded-full border px-3 py-2 text-xs uppercase tracking-editorial",
                           tipPreset === id
                             ? "border-cream bg-cream text-charcoal"
                             : "border-white/15 text-cream/80 hover:bg-white/5",
@@ -422,7 +479,7 @@ export function OrderDrawer() {
                         type="number"
                         min={0}
                         step={1}
-                        className="mt-1 w-full rounded-xl border border-white/10 bg-charcoal px-3 py-2 text-sm text-cream"
+                        className={fieldInputClass()}
                         value={customTipCents / 100}
                         onChange={(e) =>
                           setCustomTipCents(Math.round(Number(e.target.value || 0) * 100))
@@ -454,17 +511,14 @@ export function OrderDrawer() {
                   </>
                 )}
               </section>
-
-              {/* TODO: Wire SMS, email, Toast, Square, or POS when replacing mock order routes. */}
             </div>
 
-            <footer className="space-y-3 border-t border-white/10 p-5">
-              {/* TODO: Replace null prices with confirmed restaurant pricing before enabling real payment checkout. */}
-              {cartHasUnpricedItems ? (
+            <footer className="shrink-0 space-y-3 border-t border-white/10 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+              {showRequestOnly ? (
                 <button
                   type="button"
-                  disabled={!canSendOrderRequest}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-salsa py-3 text-sm font-semibold uppercase tracking-editorial text-cream shadow-lg transition hover:bg-salsa/90 disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={!canSendOrderRequest || orderStatus === "submitting"}
+                  className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-salsa py-3 text-sm font-semibold uppercase tracking-editorial text-cream shadow-lg transition hover:bg-salsa/90 disabled:cursor-not-allowed disabled:opacity-40"
                   onClick={() => submitOrderRequest()}
                 >
                   Send Order Request
@@ -472,17 +526,17 @@ export function OrderDrawer() {
               ) : (
                 <button
                   type="button"
-                  disabled={!canOpenPayment}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-salsa py-3 text-sm font-semibold uppercase tracking-editorial text-cream shadow-lg transition hover:bg-salsa/90 disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={!canOpenPayment || orderStatus === "submitting"}
+                  className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-salsa py-3 text-sm font-semibold uppercase tracking-editorial text-cream shadow-lg transition hover:bg-salsa/90 disabled:cursor-not-allowed disabled:opacity-40"
                   onClick={() => setPaymentModalOpen(true)}
                 >
                   Pay with card (Clover)
                 </button>
               )}
-              {!canSendOrderRequest ? (
+              {!canSendOrderRequest && cart.length > 0 ? (
                 <p className="text-center text-xs text-cream/50">
-                  Add items, name, phone, requested time
-                  {fulfillment === "delivery" ? ", and delivery address" : ""} to continue.
+                  Add name and phone
+                  {fulfillment === "delivery" ? ", and a delivery address," : ""} to continue.
                 </p>
               ) : null}
             </footer>
@@ -503,9 +557,25 @@ function Row({
   strong?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <span className={strong ? "text-cream" : "text-cream/70"}>{label}</span>
-      <span className={strong ? "font-semibold text-cream" : "text-cream"}>{value}</span>
+    <div className="flex min-w-0 items-start justify-between gap-4">
+      <span className={strong ? "shrink-0 text-cream" : "shrink-0 text-cream/70"}>{label}</span>
+      <span
+        className={cn(
+          "min-w-0 text-right",
+          strong ? "font-semibold text-cream" : "text-cream",
+        )}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <span className="shrink-0 text-cream/60">{label}</span>
+      <span className="min-w-0 text-cream/90 sm:text-right">{value}</span>
     </div>
   );
 }

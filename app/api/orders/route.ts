@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import type { CartLine, CustomerInfo, FulfillmentType, PickupLocationId } from "@/lib/types/order";
+import type {
+  CartLine,
+  CustomerInfo,
+  FulfillmentType,
+  PickupLocationId,
+  OrderDeliveryPayload,
+} from "@/lib/types/order";
 
 type PaymentMode = "request" | "clover";
 
@@ -8,7 +14,10 @@ type Body = {
   /** @deprecated use paymentMode: "clover" instead */
   mode?: "request" | "payment";
   fulfillment?: FulfillmentType;
+  fulfillmentType?: FulfillmentType;
   pickupLocation?: PickupLocationId;
+  pickup?: { locationId?: PickupLocationId };
+  delivery?: OrderDeliveryPayload;
   items?: CartLine[];
   customer?: CustomerInfo;
   requestedTime?: string;
@@ -26,6 +35,12 @@ function resolvePaymentMode(body: Body): PaymentMode {
   if (body.paymentMode === "request") return "request";
   if (body.mode === "payment") return "clover";
   return "request";
+}
+
+function resolveFulfillment(body: Body): FulfillmentType | null {
+  const f = body.fulfillment ?? body.fulfillmentType;
+  if (f === "pickup" || f === "delivery") return f;
+  return null;
 }
 
 function isCartLine(x: unknown): x is CartLine {
@@ -55,6 +70,12 @@ function validateCustomer(customer: CustomerInfo | undefined) {
   return null;
 }
 
+function deliveryAddressFromBody(body: Body): string {
+  const nested = body.delivery?.address?.trim();
+  if (nested) return nested;
+  return body.customer?.addressLine1?.trim() ?? "";
+}
+
 export async function POST(req: Request) {
   let body: Body;
   try {
@@ -64,6 +85,7 @@ export async function POST(req: Request) {
   }
 
   const paymentMode = resolvePaymentMode(body);
+  const fulfillment = resolveFulfillment(body);
 
   if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
     return NextResponse.json({ ok: false, error: "Cart is empty" }, { status: 400 });
@@ -72,7 +94,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Invalid line items" }, { status: 400 });
   }
 
-  if (body.fulfillment !== "pickup" && body.fulfillment !== "delivery") {
+  if (!fulfillment) {
     return NextResponse.json({ ok: false, error: "Invalid fulfillment" }, { status: 400 });
   }
 
@@ -81,28 +103,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: custErr }, { status: 400 });
   }
 
-  if (!body.requestedTime || typeof body.requestedTime !== "string") {
-    return NextResponse.json(
-      { ok: false, error: "Requested time is required" },
-      { status: 400 },
-    );
-  }
-
-  if (body.fulfillment === "delivery") {
-    const c = body.customer!;
-    const a = c.addressLine1?.trim();
-    const city = c.city?.trim();
-    const state = c.state?.trim();
-    const zip = c.postalCode?.trim();
-    if (!a || !city || !state || !zip) {
+  if (fulfillment === "delivery") {
+    const addr = deliveryAddressFromBody(body);
+    if (addr.length < 5) {
       return NextResponse.json(
-        { ok: false, error: "Delivery requires a full address" },
+        { ok: false, error: "Delivery address is required" },
         { status: 400 },
       );
     }
   }
 
   if (paymentMode === "clover") {
+    if (fulfillment === "delivery") {
+      return NextResponse.json(
+        { ok: false, error: "Card payment is not enabled for delivery yet" },
+        { status: 400 },
+      );
+    }
     const token = body.cloverToken;
     if (!token || typeof token !== "string" || token.length < 8) {
       return NextResponse.json(
@@ -130,11 +147,42 @@ export async function POST(req: Request) {
 
   if (paymentMode === "request") {
     const orderId = `REQ-${Date.now()}`;
+    const hasNullPrice = body.items.some((i) => i.unitPriceCents === null);
+    let message =
+      fulfillment === "delivery"
+        ? "Delivery request ready. We’ll confirm pricing, delivery availability, and arrival time."
+        : "Order request ready. We’ll confirm pricing and pickup time.";
+    if (hasNullPrice) {
+      message += " Final price confirmed before your order is prepared.";
+    }
+
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console -- demo / owner visibility
+      console.info("[orders:request]", {
+        orderId,
+        fulfillment,
+        fulfillmentType: body.fulfillmentType ?? fulfillment,
+        pickup: body.pickup ?? (fulfillment === "pickup" ? { locationId: body.pickupLocation } : undefined),
+        delivery:
+          body.delivery ??
+          (fulfillment === "delivery"
+            ? {
+                address: deliveryAddressFromBody(body),
+                unit: body.customer?.addressLine2?.trim() || undefined,
+                instructions: body.customer?.deliveryInstructions?.trim() || undefined,
+              }
+            : undefined),
+        orderNotes: body.orderNotes,
+        requestedTime: body.requestedTime,
+        lineCount: body.items.length,
+      });
+    }
+
     return NextResponse.json({
       ok: true,
       orderId,
       paymentMode: "request",
-      message: "Order request received. We’ll confirm pricing and pickup time.",
+      message,
     });
   }
 
@@ -145,7 +193,7 @@ export async function POST(req: Request) {
     paymentMode: "clover",
     message: "Payment recorded (demo).",
     echo: {
-      fulfillment: body.fulfillment,
+      fulfillment,
       lineCount: body.items.length,
       totalCents: body.totalCents,
     },
