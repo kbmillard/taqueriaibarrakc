@@ -5,17 +5,13 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useMenuCatalog } from "@/context/MenuCatalogContext";
-import { useOrder } from "@/context/OrderContext";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { POPULAR_VISUAL_SLOTS } from "@/lib/data/popular-visual-grid";
 import type { MenuItem } from "@/lib/menu/schema";
 
-type OpenSheet = { item: MenuItem; imageSrc: string };
-
 export function PopularOrders() {
   const { data, loading } = useMenuCatalog();
-  const [open, setOpen] = useState<OpenSheet | null>(null);
-  const { addItem, openOrderPanel, scrollToSection } = useOrder();
+  const [openImageSrc, setOpenImageSrc] = useState<string | null>(null);
 
   const tiles = useMemo(() => {
     if (!data) return [];
@@ -33,7 +29,7 @@ export function PopularOrders() {
           kicker="Popular orders"
           title="Featured picks from the street."
           align="center"
-          subtitle="Twelve house favorites—tap a photo for details and add to your order."
+          subtitle="Twelve house favorites—tap a photo to view it larger."
         />
 
         {loading || !data ? (
@@ -48,8 +44,8 @@ export function PopularOrders() {
               <button
                 key={item.id}
                 type="button"
-                aria-label={`${item.name} — view details`}
-                onClick={() => setOpen({ item, imageSrc })}
+                aria-label={`${item.name} — enlarge photo`}
+                onClick={() => setOpenImageSrc(imageSrc)}
                 className="group relative aspect-square overflow-hidden rounded-3xl border border-white/10 ring-offset-2 ring-offset-charcoal transition hover:ring-2 hover:ring-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-salsa"
               >
                 <Image
@@ -66,7 +62,7 @@ export function PopularOrders() {
       </div>
 
       <AnimatePresence>
-        {open ? (
+        {openImageSrc ? (
           <motion.div
             className="fixed inset-0 z-[75] flex items-end justify-center sm:items-center sm:p-8"
             initial={{ opacity: 0 }}
@@ -77,61 +73,35 @@ export function PopularOrders() {
               type="button"
               className="absolute inset-0 bg-black/70 backdrop-blur-sm"
               aria-label="Close"
-              onClick={() => setOpen(null)}
+              onClick={() => setOpenImageSrc(null)}
             />
             <motion.div
               initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ type: "spring", stiffness: 260, damping: 28 }}
-              className="relative z-[76] w-full max-w-lg rounded-t-3xl border border-white/10 bg-charcoal p-6 shadow-2xl sm:rounded-3xl"
+              className="relative z-[76] w-full max-w-[min(100vw-2rem,420px)] p-4 sm:p-6"
               role="dialog"
               aria-modal="true"
-              aria-labelledby="popular-dialog-title"
+              aria-label="Photo preview"
             >
               <button
                 type="button"
-                className="absolute right-4 top-4 rounded-full border border-white/10 p-2 text-cream"
-                onClick={() => setOpen(null)}
+                className="absolute right-6 top-6 z-[77] rounded-full border border-white/20 bg-charcoal/90 p-2 text-cream shadow-lg sm:right-8 sm:top-8"
+                onClick={() => setOpenImageSrc(null)}
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden />
               </button>
-              <div className="relative mb-4 aspect-video overflow-hidden rounded-2xl border border-white/10 bg-charcoal">
+              <div className="relative aspect-square w-full overflow-hidden rounded-3xl border border-white/10 bg-charcoal shadow-2xl">
                 <Image
-                  src={open.imageSrc}
+                  src={openImageSrc}
                   alt=""
                   fill
                   className="object-cover"
+                  sizes="(min-width: 640px) 420px, 100vw"
+                  priority
                 />
               </div>
-              <p className="text-xs uppercase tracking-editorial text-cream/60">
-                {open.item.category}
-              </p>
-              <h3 id="popular-dialog-title" className="mt-1 font-display text-3xl text-cream">
-                {open.item.name}
-              </h3>
-              <p className="mt-3 text-sm text-cream/75">{open.item.description}</p>
-              <p className="mt-4 text-lg font-semibold text-cream">
-                {open.item.price === null ? "Price TBD" : `$${open.item.price.toFixed(2)}`}
-              </p>
-              <button
-                type="button"
-                className="mt-6 w-full rounded-full bg-salsa py-3 text-sm font-semibold uppercase tracking-editorial text-cream"
-                onClick={() => {
-                  if (open.item.meatChoiceRequired) {
-                    setOpen(null);
-                    scrollToSection("menu");
-                    return;
-                  }
-                  addItem(open.item.id, { quantity: 1 });
-                  openOrderPanel();
-                  setOpen(null);
-                }}
-              >
-                {open.item.meatChoiceRequired
-                  ? "Go to menu to choose meat"
-                  : "Add to order"}
-              </button>
             </motion.div>
           </motion.div>
         ) : null}
