@@ -11,14 +11,14 @@ export function Hero() {
   return (
     <section
       id="hero"
-      className="relative flex min-h-[100svh] items-end overflow-hidden pt-[var(--nav-h)]"
+      className="relative flex min-h-[100svh] items-end overflow-hidden bg-charcoal pt-[var(--nav-h)]"
     >
       <Image
         src={HERO_BACKGROUND_IMAGE}
         alt={HERO_BACKGROUND_ALT}
         fill
         priority
-        className="object-cover"
+        className="object-contain object-center lg:object-cover"
         sizes="100vw"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/70 to-charcoal/20" />
