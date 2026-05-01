@@ -12,7 +12,7 @@ type StorySlide = {
   lineEn: string;
 };
 
-/** Twelve slides: owner photos + on-brand truck & food imagery (same frame as Story “screenshot 5”). */
+/** Six slides: four owner photos + the two original truck story images. */
 const STORY_SLIDES: StorySlide[] = [
   {
     src: "/images/story-slides/01-menu-board.png",
@@ -37,42 +37,6 @@ const STORY_SLIDES: StorySlide[] = [
     alt: "Taqueria Ibarra food truck with canopy and menu on North Brighton.",
     lineEs: "La troca en KC",
     lineEn: "North Brighton nights, open neon",
-  },
-  {
-    src: "/images/popular/05-tacos-with-salsas.webp",
-    alt: "Street tacos with salsas and lime.",
-    lineEs: "Sabor de la calle",
-    lineEn: "street flavor, family care",
-  },
-  {
-    src: "/images/popular/06-shrimp-salad.webp",
-    alt: "Fresh plate from the truck.",
-    lineEs: "Platos honestos",
-    lineEn: "honest portions, real heat",
-  },
-  {
-    src: "/images/popular/07-tacos-and-drinks-combo.webp",
-    alt: "Tacos and drinks at the truck.",
-    lineEs: "Para llevar",
-    lineEn: "built for carryout and delivery",
-  },
-  {
-    src: "/images/popular/08-caldo-and-tacos.webp",
-    alt: "Caldo and tacos spread.",
-    lineEs: "Hecho en KC",
-    lineEn: "made fresh in Kansas City",
-  },
-  {
-    src: "/images/popular/09-loaded-burrito.webp",
-    alt: "Loaded burrito from Taqueria Ibarra.",
-    lineEs: "Bocados generosos",
-    lineEn: "generous bites, KC pride",
-  },
-  {
-    src: "/images/popular/10-taco-closeup.webp",
-    alt: "Close-up of tacos on the plancha.",
-    lineEs: "Tortillas que importan",
-    lineEn: "tortillas treated like they matter",
   },
   {
     src: "/images/story/taqueria-truck-1.jpeg",
